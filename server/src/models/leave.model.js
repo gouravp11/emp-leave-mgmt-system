@@ -90,11 +90,10 @@ const leaveSchema = new Schema(
 );
 
 // Validate that endDate >= startDate
-leaveSchema.pre("validate", function (next) {
+leaveSchema.pre("validate", function () {
     if (this.endDate < this.startDate) {
-        return next(new Error("End date cannot be before start date"));
+        throw new Error("End date cannot be before start date");
     }
-    next();
 });
 
 // Indexes for performance
