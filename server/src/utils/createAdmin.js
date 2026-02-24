@@ -1,7 +1,7 @@
 import User from "../models/user.model.js";
 
 /**
- * Creates an admin user if one with the given email does not already exist.
+ * Creates an admin user if no admin user exists.
  * @param {{ name: string, email: string, password: string }} adminData
  * @returns {Promise<{ created: boolean, admin: object }>}
  */
