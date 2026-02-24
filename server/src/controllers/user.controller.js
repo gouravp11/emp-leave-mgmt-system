@@ -1,5 +1,7 @@
 import User from "../models/user.model.js";
 
+// ── Admin ─────────────────────────────────────────────────────────────────────
+
 export const getUsers = async (req, res) => {
     try {
         const users = await User.find({ role: { $ne: "admin" } }).select("-password");
@@ -60,6 +62,51 @@ export const deleteUser = async (req, res) => {
         await user.deleteOne();
 
         res.json({ message: `User "${user.name}" has been deleted successfully.` });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error.", error: error.message });
+    }
+};
+
+export const changeRole = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { role } = req.body;
+
+        if (!role || !["employee", "manager"].includes(role)) {
+            return res
+                .status(400)
+                .json({ message: "Role must be either 'employee' or 'manager'." });
+        }
+
+        const user = await User.findById(userId).select("-password");
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        if (user.role === "admin") {
+            return res.status(400).json({ message: "Admin role cannot be changed." });
+        }
+
+        if (user.role === role) {
+            return res.status(400).json({ message: `User already has the role '${role}'.` });
+        }
+
+        user.role = role;
+        if (user.managerId) {
+            user.managerId = null;
+        }
+        await user.save();
+
+        res.json({
+            message: `User "${user.name}" role updated to '${role}'.`,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                userStatus: user.userStatus
+            }
+        });
     } catch (error) {
         res.status(500).json({ message: "Internal server error.", error: error.message });
     }
@@ -185,46 +232,12 @@ export const assignManager = async (req, res) => {
     }
 };
 
-export const changeRole = async (req, res) => {
+// ── Manager ───────────────────────────────────────────────────────────────────
+
+export const getMyTeam = async (req, res) => {
     try {
-        const { userId } = req.params;
-        const { role } = req.body;
-
-        if (!role || !["employee", "manager"].includes(role)) {
-            return res
-                .status(400)
-                .json({ message: "Role must be either 'employee' or 'manager'." });
-        }
-
-        const user = await User.findById(userId).select("-password");
-        if (!user) {
-            return res.status(404).json({ message: "User not found." });
-        }
-
-        if (user.role === "admin") {
-            return res.status(400).json({ message: "Admin role cannot be changed." });
-        }
-
-        if (user.role === role) {
-            return res.status(400).json({ message: `User already has the role '${role}'.` });
-        }
-
-        user.role = role;
-        if (user.managerId) {
-            user.managerId = null;
-        }
-        await user.save();
-
-        res.json({
-            message: `User "${user.name}" role updated to '${role}'.`,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                userStatus: user.userStatus
-            }
-        });
+        const users = await User.find({ managerId: req.user._id }).select("-password");
+        res.json({ users });
     } catch (error) {
         res.status(500).json({ message: "Internal server error.", error: error.message });
     }

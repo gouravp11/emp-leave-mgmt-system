@@ -6,9 +6,9 @@ import {
     getUsers,
     deleteUser,
     changeRole,
-    assignManager
-} from "../controllers/admin.controller.js";
-import { getMyTeam } from "../controllers/manager.controller.js";
+    assignManager,
+    getMyTeam
+} from "../controllers/user.controller.js";
 
 const router = Router();
 
