@@ -13,7 +13,7 @@ const leaveSchema = new Schema(
         approverId: {
             type: Schema.Types.ObjectId,
             ref: "User",
-            required: true
+            default: null
         },
 
         leaveType: {
