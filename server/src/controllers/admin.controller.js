@@ -43,3 +43,24 @@ export const approveUser = async (req, res) => {
         res.status(500).json({ message: "Internal server error.", error: error.message });
     }
 };
+
+export const deleteUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        if (user.role === "admin") {
+            return res.status(400).json({ message: "Admin accounts cannot be deleted." });
+        }
+
+        await user.deleteOne();
+
+        res.json({ message: `User "${user.name}" has been deleted successfully.` });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error.", error: error.message });
+    }
+};
