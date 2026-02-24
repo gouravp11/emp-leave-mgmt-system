@@ -210,6 +210,9 @@ export const changeRole = async (req, res) => {
         }
 
         user.role = role;
+        if (user.managerId) {
+            user.managerId = null;
+        }
         await user.save();
 
         res.json({
