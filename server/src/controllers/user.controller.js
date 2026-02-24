@@ -59,6 +59,11 @@ export const deleteUser = async (req, res) => {
             return res.status(400).json({ message: "Admin accounts cannot be deleted." });
         }
 
+        // If the user is a manager, unassign all their direct reports
+        if (user.role === "manager") {
+            await User.updateMany({ managerId: user._id }, { $set: { managerId: null } });
+        }
+
         await user.deleteOne();
 
         res.json({ message: `User "${user.name}" has been deleted successfully.` });
