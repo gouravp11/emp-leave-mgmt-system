@@ -1,13 +1,22 @@
 import "dotenv/config";
 import express from "express";
+import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
 import createAdmin from "./utils/createAdmin.js";
+import authRoutes from "./routes/auth.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
 
 const app = express();
+
+app.use(express.json());
+app.use(cookieParser());
 
 app.get("/api", (req, res) => {
     res.json({ message: "Hello from the server!" });
 });
+
+app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
 
 const PORT = process.env.PORT || 5000;
 
