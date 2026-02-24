@@ -15,6 +15,60 @@ export const getMyLeaves = async (req, res) => {
     }
 };
 
+export const getTeamLeaves = async (req, res) => {
+    try {
+        const { status } = req.query;
+
+        // Get all direct reports of this manager
+        const teamMembers = await User.find({ managerId: req.user._id }).select("_id");
+        const teamIds = teamMembers.map((m) => m._id);
+
+        const filter = { requesterId: { $in: teamIds } };
+        if (status) filter.status = status;
+
+        const leaves = await Leave.find(filter)
+            .populate("requesterId", "name email role")
+            .sort({ createdAt: -1 });
+
+        res.json({ leaves });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error.", error: error.message });
+    }
+};
+
+export const getUserLeaves = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { status } = req.query;
+
+        // Ensure the target user is a direct report of this manager
+        const targetUser = await User.findById(userId).select("managerId name email role");
+        if (!targetUser) {
+            return res.status(404).json({ message: "User not found." });
+        }
+        if (!targetUser.managerId || !targetUser.managerId.equals(req.user._id)) {
+            return res.status(403).json({ message: "This user is not in your team." });
+        }
+
+        const filter = { requesterId: userId };
+        if (status) filter.status = status;
+
+        const leaves = await Leave.find(filter).sort({ createdAt: -1 });
+
+        res.json({
+            user: {
+                id: targetUser._id,
+                name: targetUser.name,
+                email: targetUser.email,
+                role: targetUser.role
+            },
+            leaves
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error.", error: error.message });
+    }
+};
+
 export const createLeave = async (req, res) => {
     try {
         const { leaveType, startDate, endDate, reason } = req.body;
