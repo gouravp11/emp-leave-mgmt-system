@@ -65,6 +65,14 @@ const userSchema = new Schema(
     }
 );
 
+// Auto-approve admin accounts
+userSchema.pre("save", function (next) {
+    if (this.role === "admin") {
+        this.userStatus = "approved";
+    }
+    next();
+});
+
 // Hash password before saving
 userSchema.pre("save", async function () {
     if (!this.isModified("password")) return;
