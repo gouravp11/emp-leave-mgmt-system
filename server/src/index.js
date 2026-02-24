@@ -4,8 +4,8 @@ import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
 import createAdmin from "./utils/createAdmin.js";
 import authRoutes from "./routes/auth.routes.js";
-import adminRoutes from "./routes/admin.routes.js";
-import managerRoutes from "./routes/manager.routes.js";
+import userRoutes from "./routes/user.routes.js";
+import leaveRoutes from "./routes/leave.routes.js";
 
 const app = express();
 
@@ -17,8 +17,8 @@ app.get("/api", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/manager", managerRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/leaves", leaveRoutes);
 
 const PORT = process.env.PORT || 5000;
 
