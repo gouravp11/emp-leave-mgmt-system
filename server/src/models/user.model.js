@@ -31,6 +31,12 @@ const userSchema = new Schema(
             default: "employee"
         },
 
+        userStatus: {
+            type: String,
+            enum: ["pending", "approved"],
+            default: "pending"
+        },
+
         managerId: {
             type: Schema.Types.ObjectId,
             ref: "User",
