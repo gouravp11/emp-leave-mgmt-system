@@ -5,6 +5,7 @@ import {
     createLeave,
     approveLeave,
     rejectLeave,
+    cancelLeave,
     getMyLeaves,
     getTeamLeaves,
     getUserLeaves,
@@ -19,6 +20,7 @@ router.get("/user/:userId", authenticate, authorize("manager"), getUserLeaves);
 router.post("/", authenticate, authorize("employee", "manager"), createLeave);
 router.patch("/:leaveId/approve", authenticate, authorize("manager"), approveLeave);
 router.patch("/:leaveId/reject", authenticate, authorize("manager"), rejectLeave);
+router.patch("/:leaveId/cancel", authenticate, authorize("manager"), cancelLeave);
 router.delete("/:leaveId", authenticate, authorize("employee", "manager"), deleteLeave);
 
 export default router;

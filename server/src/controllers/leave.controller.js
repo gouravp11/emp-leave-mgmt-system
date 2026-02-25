@@ -69,6 +69,51 @@ export const getUserLeaves = async (req, res) => {
     }
 };
 
+export const cancelLeave = async (req, res) => {
+    try {
+        const { leaveId } = req.params;
+        const { note } = req.body || {};
+
+        const leave = await Leave.findById(leaveId);
+        if (!leave) {
+            return res.status(404).json({ message: "Leave application not found." });
+        }
+
+        // Manager cannot cancel their own leave
+        if (leave.requesterId.equals(req.user._id)) {
+            return res.status(403).json({ message: "You cannot cancel your own leave." });
+        }
+
+        // Must be the direct manager of the requester
+        const requester = await User.findById(leave.requesterId).select("managerId");
+        if (!requester || !requester.managerId || !requester.managerId.equals(req.user._id)) {
+            return res
+                .status(403)
+                .json({ message: "You are not authorised to cancel this leave application." });
+        }
+
+        if (leave.status !== "approved") {
+            return res.status(400).json({
+                message: `Only approved leaves can be cancelled. This leave is ${leave.status}.`
+            });
+        }
+
+        leave.status = "cancelled";
+        leave.cancelledAt = new Date();
+        leave.approvalHistory.push({
+            actionBy: req.user._id,
+            action: "cancelled",
+            note: note || null
+        });
+
+        await leave.save();
+
+        res.json({ message: "Leave application cancelled successfully.", leave });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error.", error: error.message });
+    }
+};
+
 export const deleteLeave = async (req, res) => {
     try {
         const { leaveId } = req.params;
