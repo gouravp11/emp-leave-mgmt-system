@@ -2,12 +2,12 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import connectDB from "./config/db.js";
-import createAdmin from "./utils/createAdmin.js";
-import authRoutes from "./routes/auth.routes.js";
-import userRoutes from "./routes/user.routes.js";
-import leaveRoutes from "./routes/leave.routes.js";
-import reimbursementRoutes from "./routes/reimbursement.routes.js";
+import connectDB from "./src/config/db.js";
+import createAdmin from "./src/utils/createAdmin.js";
+import authRoutes from "./src/routes/auth.routes.js";
+import userRoutes from "./src/routes/user.routes.js";
+import leaveRoutes from "./src/routes/leave.routes.js";
+import reimbursementRoutes from "./src/routes/reimbursement.routes.js";
 
 const app = express();
 
