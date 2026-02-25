@@ -42,3 +42,42 @@ export const createReimbursement = async (req, res) => {
         res.status(500).json({ message: "Internal server error.", error: error.message });
     }
 };
+
+export const uploadReceipts = async (req, res) => {
+    try {
+        const { reimbursementId } = req.params;
+
+        const reimbursement = await Reimbursement.findById(reimbursementId);
+        if (!reimbursement) {
+            return res.status(404).json({ message: "Reimbursement not found." });
+        }
+
+        // Only the owner can add receipts
+        if (!reimbursement.requesterId.equals(req.user._id)) {
+            return res
+                .status(403)
+                .json({ message: "You are not authorised to modify this reimbursement." });
+        }
+
+        if (reimbursement.status !== "pending") {
+            return res.status(400).json({
+                message: `Receipts cannot be added to a reimbursement that is already ${reimbursement.status}.`
+            });
+        }
+
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ message: "No files uploaded." });
+        }
+
+        const newReceipts = req.files.map((file) => ({ url: file.path }));
+        reimbursement.receipts.push(...newReceipts);
+        await reimbursement.save();
+
+        res.json({
+            message: `${newReceipts.length} receipt(s) added successfully.`,
+            receipts: reimbursement.receipts
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error.", error: error.message });
+    }
+};
