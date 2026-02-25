@@ -176,6 +176,20 @@ export const createLeave = async (req, res) => {
             return res.status(400).json({ message: "End date cannot be before start date." });
         }
 
+        // Check for overlapping leaves (pending or approved)
+        const overlapping = await Leave.findOne({
+            requesterId: req.user._id,
+            status: { $in: ["pending", "approved"] },
+            startDate: { $lte: end },
+            endDate: { $gte: start }
+        });
+
+        if (overlapping) {
+            return res.status(400).json({
+                message: `Your leave request overlaps with an existing ${overlapping.status} leave (${overlapping.startDate.toISOString().split("T")[0]} – ${overlapping.endDate.toISOString().split("T")[0]}).`
+            });
+        }
+
         // Calculate inclusive calendar days
         const totalDays = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
