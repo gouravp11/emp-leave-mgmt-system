@@ -1,7 +1,15 @@
-import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import LandingPage from "./pages/LandingPage";
 
 const App = () => {
-    return <div>App</div>;
+    return (
+        <BrowserRouter>
+            <Routes>
+                <Route path="/" element={<LandingPage />} />
+                {/* Auth and dashboard routes will be added here */}
+            </Routes>
+        </BrowserRouter>
+    );
 };
 
 export default App;
