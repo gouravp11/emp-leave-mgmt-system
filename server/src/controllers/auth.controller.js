@@ -108,14 +108,24 @@ export const logout = (req, res) => {
 
 export const getMe = async (req, res) => {
     try {
-        const user = req.user;
+        const user = await User.findById(req.user._id)
+            .select("-password")
+            .populate("managerId", "name email");
+
+        if (!user) return res.status(404).json({ message: "User not found." });
+
         res.json({
             user: {
                 id: user._id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                userStatus: user.userStatus
+                userStatus: user.userStatus,
+                createdAt: user.createdAt,
+                department: user.profile?.department || null,
+                manager: user.managerId
+                    ? { name: user.managerId.name, email: user.managerId.email }
+                    : null
             }
         });
     } catch (error) {

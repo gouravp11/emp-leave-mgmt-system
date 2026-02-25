@@ -1,6 +1,32 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+
+const formatDate = (iso) => {
+    if (!iso) return null;
+    return new Date(iso).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+    });
+};
+
+const RoleBadge = ({ role }) => {
+    const styles = {
+        admin: "bg-[#2d3a22] text-white",
+        manager: "bg-[#3d4f2f] text-white",
+        employee: "bg-[#e8eedf] text-[#3d4f2f]"
+    };
+    return (
+        <span
+            className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full capitalize ${
+                styles[role] ?? "bg-[#e8eedf] text-[#3d4f2f]"
+            }`}
+        >
+            {role}
+        </span>
+    );
+};
 
 /**
  * Reusable dashboard shell.
@@ -14,6 +40,19 @@ const DashboardLayout = ({ navItems = [] }) => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [profileOpen, setProfileOpen] = useState(false);
+    const profileRef = useRef(null);
+
+    useEffect(() => {
+        if (!profileOpen) return;
+        const handler = (e) => {
+            if (profileRef.current && !profileRef.current.contains(e.target)) {
+                setProfileOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, [profileOpen]);
 
     const handleLogout = async () => {
         await logout();
@@ -151,17 +190,160 @@ const DashboardLayout = ({ navItems = [] }) => {
 
                     <div className="flex-1" />
 
-                    {/* User chip */}
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-[#e8eedf] border border-[#cfdbbf] flex items-center justify-center">
-                            <span className="text-[#3d4f2f] text-xs font-semibold">{initials}</span>
-                        </div>
-                        <div className="hidden sm:block text-right">
-                            <p className="text-sm font-medium text-[#2d3a22] leading-none">
-                                {user?.name}
-                            </p>
-                            <p className="text-xs text-[#8fa07a] capitalize mt-0.5">{user?.role}</p>
-                        </div>
+                    {/* User chip – clickable profile */}
+                    <div ref={profileRef} className="relative">
+                        <button
+                            onClick={() => setProfileOpen((v) => !v)}
+                            className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-[#f0f4ea] transition-colors"
+                            aria-label="View profile"
+                        >
+                            <div className="w-8 h-8 rounded-full bg-[#e8eedf] border border-[#cfdbbf] flex items-center justify-center shrink-0">
+                                <span className="text-[#3d4f2f] text-xs font-semibold">
+                                    {initials}
+                                </span>
+                            </div>
+                            <div className="hidden sm:block text-right">
+                                <p className="text-sm font-medium text-[#2d3a22] leading-none">
+                                    {user?.name}
+                                </p>
+                                <p className="text-xs text-[#8fa07a] capitalize mt-0.5">
+                                    {user?.role}
+                                </p>
+                            </div>
+                            {/* chevron */}
+                            <svg
+                                className={`w-3.5 h-3.5 text-[#8fa07a] transition-transform shrink-0 ${
+                                    profileOpen ? "rotate-180" : ""
+                                }`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2.5}
+                                    d="M19 9l-7 7-7-7"
+                                />
+                            </svg>
+                        </button>
+
+                        {/* Profile dropdown */}
+                        {profileOpen && (
+                            <div className="absolute right-0 top-full mt-2 w-72 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-xl border border-[#cfdbbf] z-50 overflow-hidden">
+                                {/* Header */}
+                                <div className="flex items-center gap-3 px-4 py-4 bg-[#f5f7f2] border-b border-[#e8eedf]">
+                                    <div className="w-11 h-11 rounded-full bg-[#3d4f2f] flex items-center justify-center shrink-0">
+                                        <span className="text-white text-sm font-bold">
+                                            {initials}
+                                        </span>
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-semibold text-[#2d3a22] truncate">
+                                            {user?.name}
+                                        </p>
+                                        <RoleBadge role={user?.role} />
+                                    </div>
+                                </div>
+
+                                {/* Details */}
+                                <div className="px-4 py-3 flex flex-col gap-2.5">
+                                    {/* Email */}
+                                    <div className="flex items-start gap-2.5">
+                                        <svg
+                                            className="w-4 h-4 text-[#8fa07a] mt-0.5 shrink-0"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={1.75}
+                                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                            />
+                                        </svg>
+                                        <span className="text-sm text-[#2d3a22] break-all">
+                                            {user?.email}
+                                        </span>
+                                    </div>
+
+                                    {/* Joined date */}
+                                    {user?.createdAt && (
+                                        <div className="flex items-center gap-2.5">
+                                            <svg
+                                                className="w-4 h-4 text-[#8fa07a] shrink-0"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={1.75}
+                                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                />
+                                            </svg>
+                                            <span className="text-sm text-[#6b7c5a]">
+                                                Joined {formatDate(user.createdAt)}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {/* Department */}
+                                    {user?.department && (
+                                        <div className="flex items-center gap-2.5">
+                                            <svg
+                                                className="w-4 h-4 text-[#8fa07a] shrink-0"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={1.75}
+                                                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                                                />
+                                            </svg>
+                                            <span className="text-sm text-[#6b7c5a]">
+                                                {user.department}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {/* Manager (employee only) */}
+                                    {user?.role === "employee" && user?.manager && (
+                                        <div className="flex items-start gap-2.5">
+                                            <svg
+                                                className="w-4 h-4 text-[#8fa07a] mt-0.5 shrink-0"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={1.75}
+                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                                />
+                                            </svg>
+                                            <div>
+                                                <p className="text-xs text-[#8fa07a] mb-0.5">
+                                                    Reports to
+                                                </p>
+                                                <p className="text-sm text-[#2d3a22] font-medium">
+                                                    {user.manager.name}
+                                                </p>
+                                                <p className="text-xs text-[#8fa07a]">
+                                                    {user.manager.email}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </header>
 
