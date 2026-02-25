@@ -6,6 +6,7 @@ import createAdmin from "./utils/createAdmin.js";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import leaveRoutes from "./routes/leave.routes.js";
+import reimbursementRoutes from "./routes/reimbursement.routes.js";
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.get("/api", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/leaves", leaveRoutes);
+app.use("/api/reimbursements", reimbursementRoutes);
 
 const PORT = process.env.PORT || 5000;
 
