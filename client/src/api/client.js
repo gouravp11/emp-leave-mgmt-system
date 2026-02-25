@@ -2,12 +2,12 @@ import axios from "axios";
 
 /**
  * Axios instance with shared config:
- * - baseURL: /api (proxied to Express by Vite in dev)
+ * - baseURL: VITE_API_URL in production, /api in dev (proxied by Vite)
  * - credentials: cookies sent with every request
  * - JSON content-type default
  */
 const client = axios.create({
-    baseURL: "/api",
+    baseURL: import.meta.env.VITE_API_URL ?? "/api",
     withCredentials: true,
     headers: {
         "Content-Type": "application/json"
