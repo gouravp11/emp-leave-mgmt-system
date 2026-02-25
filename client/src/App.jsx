@@ -6,6 +6,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import EmployeeDashboard from "./pages/employee/EmployeeDashboard";
+import ManagerDashboard from "./pages/manager/ManagerDashboard";
 
 const App = () => {
     return (
@@ -28,6 +29,14 @@ const App = () => {
                         element={
                             <ProtectedRoute role="employee">
                                 <EmployeeDashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/manager-dashboard/*"
+                        element={
+                            <ProtectedRoute role="manager">
+                                <ManagerDashboard />
                             </ProtectedRoute>
                         }
                     />

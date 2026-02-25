@@ -23,7 +23,7 @@ const LoginPage = () => {
             const data = await login(form);
             const roleRoutes = {
                 admin: "/dashboard",
-                manager: "/dashboard",
+                manager: "/manager-dashboard",
                 employee: "/employee-dashboard"
             };
             navigate(roleRoutes[data.user.role] ?? "/");
