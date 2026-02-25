@@ -105,3 +105,20 @@ export const logout = (req, res) => {
     });
     res.json({ message: "Logged out successfully." });
 };
+
+export const getMe = async (req, res) => {
+    try {
+        const user = req.user;
+        res.json({
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                userStatus: user.userStatus
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error.", error: error.message });
+    }
+};
