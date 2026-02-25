@@ -69,6 +69,35 @@ export const getUserLeaves = async (req, res) => {
     }
 };
 
+export const deleteLeave = async (req, res) => {
+    try {
+        const { leaveId } = req.params;
+
+        const leave = await Leave.findById(leaveId);
+        if (!leave) {
+            return res.status(404).json({ message: "Leave application not found." });
+        }
+
+        if (!leave.requesterId.equals(req.user._id)) {
+            return res
+                .status(403)
+                .json({ message: "You are not authorised to delete this leave application." });
+        }
+
+        if (leave.status !== "pending") {
+            return res.status(400).json({
+                message: `Only pending leaves can be deleted. This leave is ${leave.status}.`
+            });
+        }
+
+        await leave.deleteOne();
+
+        res.json({ message: "Leave application deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error.", error: error.message });
+    }
+};
+
 export const createLeave = async (req, res) => {
     try {
         const { leaveType, startDate, endDate, reason } = req.body;

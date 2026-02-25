@@ -7,7 +7,8 @@ import {
     rejectLeave,
     getMyLeaves,
     getTeamLeaves,
-    getUserLeaves
+    getUserLeaves,
+    deleteLeave
 } from "../controllers/leave.controller.js";
 
 const router = Router();
@@ -18,5 +19,6 @@ router.get("/user/:userId", authenticate, authorize("manager"), getUserLeaves);
 router.post("/", authenticate, authorize("employee", "manager"), createLeave);
 router.patch("/:leaveId/approve", authenticate, authorize("manager"), approveLeave);
 router.patch("/:leaveId/reject", authenticate, authorize("manager"), rejectLeave);
+router.delete("/:leaveId", authenticate, authorize("employee", "manager"), deleteLeave);
 
 export default router;
