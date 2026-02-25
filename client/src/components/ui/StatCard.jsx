@@ -10,7 +10,7 @@
  */
 const StatCard = ({ title, value, subtitle, icon, accent = "#e8eedf" }) => {
     return (
-        <div className="bg-white border border-[#cfdbbf] rounded-xl px-5 py-5 flex items-start gap-4">
+        <div className="bg-white border border-[#cfdbbf] rounded-xl px-5 py-5 flex items-start gap-4 transition-colors">
             <div
                 className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
                 style={{ backgroundColor: accent }}

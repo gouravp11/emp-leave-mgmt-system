@@ -1,6 +1,30 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
+
+// ── Sun / Moon icons ─────────────────────────────────────────────────────────
+const SunIcon = () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 3v1m0 16v1m8.66-9h-1M4.34 12h-1m15.07-6.07-.71.71M6.34 17.66l-.71.71m12.73 0-.71-.71M6.34 6.34l-.71-.71M12 7a5 5 0 100 10A5 5 0 0012 7z"
+        />
+    </svg>
+);
+
+const MoonIcon = () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"
+        />
+    </svg>
+);
 
 const formatDate = (iso) => {
     if (!iso) return null;
@@ -38,6 +62,7 @@ const RoleBadge = ({ role }) => {
  */
 const DashboardLayout = ({ navItems = [] }) => {
     const { user, logout } = useAuth();
+    const { dark, toggle: toggleTheme } = useTheme();
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
@@ -189,6 +214,15 @@ const DashboardLayout = ({ navItems = [] }) => {
                     </button>
 
                     <div className="flex-1" />
+
+                    {/* Dark-mode toggle */}
+                    <button
+                        onClick={toggleTheme}
+                        aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+                        className="p-2 rounded-lg text-[#6b7c5a] hover:bg-[#e8eedf] transition-colors shrink-0"
+                    >
+                        {dark ? <SunIcon /> : <MoonIcon />}
+                    </button>
 
                     {/* User chip – clickable profile */}
                     <div ref={profileRef} className="relative">
