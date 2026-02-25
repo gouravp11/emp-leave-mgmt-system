@@ -21,11 +21,10 @@ const LoginPage = () => {
 
         try {
             const data = await login(form);
-            // Route each role to its own dashboard (add /manager, /employee when ready)
             const roleRoutes = {
                 admin: "/dashboard",
                 manager: "/dashboard",
-                employee: "/dashboard"
+                employee: "/employee-dashboard"
             };
             navigate(roleRoutes[data.user.role] ?? "/");
         } catch (err) {
