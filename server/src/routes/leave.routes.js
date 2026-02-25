@@ -9,11 +9,13 @@ import {
     getMyLeaves,
     getTeamLeaves,
     getUserLeaves,
-    deleteLeave
+    deleteLeave,
+    getAllLeaves
 } from "../controllers/leave.controller.js";
 
 const router = Router();
 
+router.get("/", authenticate, authorize("admin"), getAllLeaves);
 router.get("/my", authenticate, authorize("employee", "manager"), getMyLeaves);
 router.get("/team", authenticate, authorize("manager"), getTeamLeaves);
 router.get("/user/:userId", authenticate, authorize("manager"), getUserLeaves);
