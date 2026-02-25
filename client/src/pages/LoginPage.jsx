@@ -20,8 +20,14 @@ const LoginPage = () => {
         setError("");
 
         try {
-            await login(form);
-            navigate("/dashboard");
+            const data = await login(form);
+            // Route each role to its own dashboard (add /manager, /employee when ready)
+            const roleRoutes = {
+                admin: "/dashboard",
+                manager: "/dashboard",
+                employee: "/dashboard"
+            };
+            navigate(roleRoutes[data.user.role] ?? "/");
         } catch (err) {
             setError(err.message || "Login failed. Please try again.");
         } finally {
