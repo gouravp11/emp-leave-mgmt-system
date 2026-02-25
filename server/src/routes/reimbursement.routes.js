@@ -35,7 +35,7 @@ router.patch(
 );
 router.patch("/:reimbursementId/approve", authenticate, authorize("manager"), approveReimbursement);
 router.patch("/:reimbursementId/reject", authenticate, authorize("manager"), rejectReimbursement);
-router.patch("/:reimbursementId/paid", authenticate, authorize("admin"), markReimbursementPaid);
+router.patch("/:reimbursementId/paid", authenticate, authorize("manager"), markReimbursementPaid);
 router.delete(
     "/:reimbursementId",
     authenticate,
