@@ -279,6 +279,42 @@ export const markReimbursementPaid = async (req, res) => {
     }
 };
 
+export const getReceipt = async (req, res) => {
+    try {
+        const { reimbursementId, receiptIndex } = req.params;
+
+        const reimbursement = await Reimbursement.findById(reimbursementId);
+        if (!reimbursement) {
+            return res.status(404).json({ message: "Reimbursement not found." });
+        }
+
+        // Access control: owner, their manager, or admin
+        const isOwner = reimbursement.requesterId.equals(req.user._id);
+        const isAdmin = req.user.role === "admin";
+        let isManager = false;
+        if (req.user.role === "manager") {
+            const requester = await User.findById(reimbursement.requesterId).select("managerId");
+            isManager = !!requester?.managerId?.equals(req.user._id);
+        }
+
+        if (!isOwner && !isAdmin && !isManager) {
+            return res
+                .status(403)
+                .json({ message: "You are not authorised to view this receipt." });
+        }
+
+        const idx = parseInt(receiptIndex, 10);
+        if (isNaN(idx) || idx < 0 || idx >= reimbursement.receipts.length) {
+            return res.status(404).json({ message: "Receipt not found." });
+        }
+
+        const { url } = reimbursement.receipts[idx];
+        return res.redirect(url);
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error.", error: error.message });
+    }
+};
+
 export const deleteReimbursement = async (req, res) => {
     try {
         const { reimbursementId } = req.params;

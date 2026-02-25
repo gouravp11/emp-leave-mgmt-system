@@ -12,7 +12,8 @@ import {
     rejectReimbursement,
     markReimbursementPaid,
     deleteReimbursement,
-    getAllReimbursements
+    getAllReimbursements,
+    getReceipt
 } from "../controllers/reimbursement.controller.js";
 
 const router = Router();
@@ -38,6 +39,12 @@ router.patch(
 router.patch("/:reimbursementId/approve", authenticate, authorize("manager"), approveReimbursement);
 router.patch("/:reimbursementId/reject", authenticate, authorize("manager"), rejectReimbursement);
 router.patch("/:reimbursementId/paid", authenticate, authorize("admin"), markReimbursementPaid);
+router.get(
+    "/:reimbursementId/receipts/:receiptIndex",
+    authenticate,
+    authorize("employee", "manager", "admin"),
+    getReceipt
+);
 router.delete(
     "/:reimbursementId",
     authenticate,
