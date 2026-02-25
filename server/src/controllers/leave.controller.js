@@ -79,19 +79,6 @@ export const cancelLeave = async (req, res) => {
             return res.status(404).json({ message: "Leave application not found." });
         }
 
-        // Manager cannot cancel their own leave
-        if (leave.requesterId.equals(req.user._id)) {
-            return res.status(403).json({ message: "You cannot cancel your own leave." });
-        }
-
-        // Must be the direct manager of the requester
-        const requester = await User.findById(leave.requesterId).select("managerId");
-        if (!requester || !requester.managerId || !requester.managerId.equals(req.user._id)) {
-            return res
-                .status(403)
-                .json({ message: "You are not authorised to cancel this leave application." });
-        }
-
         if (leave.status !== "approved") {
             return res.status(400).json({
                 message: `Only approved leaves can be cancelled. This leave is ${leave.status}.`
