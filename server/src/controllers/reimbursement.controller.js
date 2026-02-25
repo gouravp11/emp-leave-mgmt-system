@@ -1,4 +1,71 @@
 import Reimbursement from "../models/reimbursement.model.js";
+import User from "../models/user.model.js";
+
+export const getMyReimbursements = async (req, res) => {
+    try {
+        const { status } = req.query;
+
+        const filter = { requesterId: req.user._id };
+        if (status) filter.status = status;
+
+        const reimbursements = await Reimbursement.find(filter).sort({ createdAt: -1 });
+        res.json({ reimbursements });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error.", error: error.message });
+    }
+};
+
+export const getTeamReimbursements = async (req, res) => {
+    try {
+        const { status } = req.query;
+
+        const teamMembers = await User.find({ managerId: req.user._id }).select("_id");
+        const teamIds = teamMembers.map((m) => m._id);
+
+        const filter = { requesterId: { $in: teamIds } };
+        if (status) filter.status = status;
+
+        const reimbursements = await Reimbursement.find(filter)
+            .populate("requesterId", "name email role")
+            .sort({ createdAt: -1 });
+
+        res.json({ reimbursements });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error.", error: error.message });
+    }
+};
+
+export const getUserReimbursements = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { status } = req.query;
+
+        const targetUser = await User.findById(userId).select("managerId name email role");
+        if (!targetUser) {
+            return res.status(404).json({ message: "User not found." });
+        }
+        if (!targetUser.managerId || !targetUser.managerId.equals(req.user._id)) {
+            return res.status(403).json({ message: "This user is not in your team." });
+        }
+
+        const filter = { requesterId: userId };
+        if (status) filter.status = status;
+
+        const reimbursements = await Reimbursement.find(filter).sort({ createdAt: -1 });
+
+        res.json({
+            user: {
+                id: targetUser._id,
+                name: targetUser.name,
+                email: targetUser.email,
+                role: targetUser.role
+            },
+            reimbursements
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error.", error: error.message });
+    }
+};
 
 export const createReimbursement = async (req, res) => {
     try {
@@ -77,6 +144,147 @@ export const uploadReceipts = async (req, res) => {
             message: `${newReceipts.length} receipt(s) added successfully.`,
             receipts: reimbursement.receipts
         });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error.", error: error.message });
+    }
+};
+
+export const approveReimbursement = async (req, res) => {
+    try {
+        const { reimbursementId } = req.params;
+        const { note } = req.body || {};
+
+        const reimbursement = await Reimbursement.findById(reimbursementId);
+        if (!reimbursement) {
+            return res.status(404).json({ message: "Reimbursement not found." });
+        }
+
+        const requester = await User.findById(reimbursement.requesterId).select("managerId");
+        if (!requester || !requester.managerId || !requester.managerId.equals(req.user._id)) {
+            return res
+                .status(403)
+                .json({ message: "You are not authorised to action this reimbursement." });
+        }
+
+        if (reimbursement.status !== "pending") {
+            return res.status(400).json({
+                message: `Reimbursement is already ${reimbursement.status} and cannot be approved.`
+            });
+        }
+
+        reimbursement.status = "approved";
+        reimbursement.approverId = req.user._id;
+        reimbursement.approvedAt = new Date();
+        reimbursement.approvalHistory.push({
+            actionBy: req.user._id,
+            action: "approved",
+            note: note || null
+        });
+
+        await reimbursement.save();
+        res.json({ message: "Reimbursement approved successfully.", reimbursement });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error.", error: error.message });
+    }
+};
+
+export const rejectReimbursement = async (req, res) => {
+    try {
+        const { reimbursementId } = req.params;
+        const { rejectionReason, note } = req.body || {};
+
+        if (!rejectionReason) {
+            return res.status(400).json({ message: "rejectionReason is required." });
+        }
+
+        const reimbursement = await Reimbursement.findById(reimbursementId);
+        if (!reimbursement) {
+            return res.status(404).json({ message: "Reimbursement not found." });
+        }
+
+        const requester = await User.findById(reimbursement.requesterId).select("managerId");
+        if (!requester || !requester.managerId || !requester.managerId.equals(req.user._id)) {
+            return res
+                .status(403)
+                .json({ message: "You are not authorised to action this reimbursement." });
+        }
+
+        if (reimbursement.status !== "pending") {
+            return res.status(400).json({
+                message: `Reimbursement is already ${reimbursement.status} and cannot be rejected.`
+            });
+        }
+
+        reimbursement.status = "rejected";
+        reimbursement.approverId = req.user._id;
+        reimbursement.rejectionReason = rejectionReason;
+        reimbursement.approvalHistory.push({
+            actionBy: req.user._id,
+            action: "rejected",
+            note: note || null
+        });
+
+        await reimbursement.save();
+        res.json({ message: "Reimbursement rejected.", reimbursement });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error.", error: error.message });
+    }
+};
+
+export const markReimbursementPaid = async (req, res) => {
+    try {
+        const { reimbursementId } = req.params;
+        const { note } = req.body || {};
+
+        const reimbursement = await Reimbursement.findById(reimbursementId);
+        if (!reimbursement) {
+            return res.status(404).json({ message: "Reimbursement not found." });
+        }
+
+        if (reimbursement.status !== "approved") {
+            return res.status(400).json({
+                message: `Only approved reimbursements can be marked as paid. This is ${reimbursement.status}.`
+            });
+        }
+
+        reimbursement.status = "paid";
+        reimbursement.paidAt = new Date();
+        reimbursement.approvalHistory.push({
+            actionBy: req.user._id,
+            action: "paid",
+            note: note || null
+        });
+
+        await reimbursement.save();
+        res.json({ message: "Reimbursement marked as paid.", reimbursement });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error.", error: error.message });
+    }
+};
+
+export const deleteReimbursement = async (req, res) => {
+    try {
+        const { reimbursementId } = req.params;
+
+        const reimbursement = await Reimbursement.findById(reimbursementId);
+        if (!reimbursement) {
+            return res.status(404).json({ message: "Reimbursement not found." });
+        }
+
+        if (!reimbursement.requesterId.equals(req.user._id)) {
+            return res
+                .status(403)
+                .json({ message: "You are not authorised to delete this reimbursement." });
+        }
+
+        if (reimbursement.status !== "pending") {
+            return res.status(400).json({
+                message: `Only pending reimbursements can be deleted. This is ${reimbursement.status}.`
+            });
+        }
+
+        await reimbursement.deleteOne();
+        res.json({ message: "Reimbursement deleted successfully." });
     } catch (error) {
         res.status(500).json({ message: "Internal server error.", error: error.message });
     }
