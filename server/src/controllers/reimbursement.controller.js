@@ -1,6 +1,23 @@
 import Reimbursement from "../models/reimbursement.model.js";
 import User from "../models/user.model.js";
 
+export const getAllReimbursements = async (req, res) => {
+    try {
+        const { status } = req.query;
+
+        const filter = {};
+        if (status) filter.status = status;
+
+        const reimbursements = await Reimbursement.find(filter)
+            .populate("requesterId", "name email role")
+            .sort({ createdAt: -1 });
+
+        res.json({ reimbursements });
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error.", error: error.message });
+    }
+};
+
 export const getMyReimbursements = async (req, res) => {
     try {
         const { status } = req.query;

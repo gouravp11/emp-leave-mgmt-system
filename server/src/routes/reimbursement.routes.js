@@ -11,11 +11,13 @@ import {
     approveReimbursement,
     rejectReimbursement,
     markReimbursementPaid,
-    deleteReimbursement
+    deleteReimbursement,
+    getAllReimbursements
 } from "../controllers/reimbursement.controller.js";
 
 const router = Router();
 
+router.get("/", authenticate, authorize("admin"), getAllReimbursements);
 router.get("/my", authenticate, authorize("employee", "manager"), getMyReimbursements);
 router.get("/team", authenticate, authorize("manager"), getTeamReimbursements);
 router.get("/user/:userId", authenticate, authorize("manager"), getUserReimbursements);
