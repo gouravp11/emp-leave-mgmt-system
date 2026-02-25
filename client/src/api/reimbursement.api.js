@@ -6,6 +6,9 @@ export const getMyReimbursements = (params) => client.get("/reimbursements/my", 
 
 export const getTeamReimbursements = (params) => client.get("/reimbursements/team", { params });
 
+export const getUserReimbursements = (userId, params) =>
+    client.get(`/reimbursements/user/${userId}`, { params });
+
 export const createReimbursement = (formData) =>
     client.post("/reimbursements", formData, {
         headers: { "Content-Type": "multipart/form-data" }
@@ -13,8 +16,8 @@ export const createReimbursement = (formData) =>
 
 export const approveReimbursement = (id) => client.patch(`/reimbursements/${id}/approve`);
 
-export const rejectReimbursement = (id, reason) =>
-    client.patch(`/reimbursements/${id}/reject`, { reason });
+export const rejectReimbursement = (id, rejectionReason) =>
+    client.patch(`/reimbursements/${id}/reject`, { rejectionReason });
 
 export const markReimbursementPaid = (id) => client.patch(`/reimbursements/${id}/paid`);
 
