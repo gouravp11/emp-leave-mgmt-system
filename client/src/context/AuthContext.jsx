@@ -1,11 +1,20 @@
-import { createContext, useContext, useState } from "react";
-import { loginApi, logoutApi, registerApi } from "../api/auth.api.js";
+import { createContext, useContext, useEffect, useState } from "react";
+import { loginApi, logoutApi, registerApi, getMeApi } from "../api/auth.api.js";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
     // user shape: { id, name, email, role, userStatus } — populated after login
     const [user, setUser] = useState(null);
+    // true while the /me check is in-flight; ProtectedRoute waits for this
+    const [initializing, setInitializing] = useState(true);
+
+    useEffect(() => {
+        getMeApi()
+            .then((data) => setUser(data.user))
+            .catch(() => setUser(null))
+            .finally(() => setInitializing(false));
+    }, []);
 
     /**
      * Log in and store user in context.
@@ -36,7 +45,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, setUser, login, register, logout }}>
+        <AuthContext.Provider value={{ user, setUser, login, register, logout, initializing }}>
             {children}
         </AuthContext.Provider>
     );

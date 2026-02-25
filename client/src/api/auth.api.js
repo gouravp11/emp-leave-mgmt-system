@@ -19,3 +19,10 @@ export const registerApi = (userData) => client.post("/auth/register", userData)
  * @returns {{ message: string }}
  */
 export const logoutApi = () => client.post("/auth/logout");
+
+/**
+ * GET /auth/me
+ * Returns the currently authenticated user from the session cookie.
+ * @returns {{ user: object }}
+ */
+export const getMeApi = () => client.get("/auth/me");
