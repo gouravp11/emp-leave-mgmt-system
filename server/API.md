@@ -46,11 +46,11 @@ All routes except `/auth/register` and `/auth/login` require a valid session coo
 
 ### Employee + Manager (own leaves)
 
-| Method | Route                  | Description                                                                                                                |
-| ------ | ---------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| GET    | `/api/leaves/my`       | Get own leave history. Filter by `?status=pending\|approved\|rejected\|cancelled`.                                         |
-| POST   | `/api/leaves`          | Submit a leave request. Requires a manager to be assigned. Body: `leaveType`, `startDate`, `endDate`, `reason` (optional). |
-| DELETE | `/api/leaves/:leaveId` | Delete own leave. Only `pending` leaves can be deleted.                                                                    |
+| Method | Route                  | Description                                                                                                                                                                                                              |
+| ------ | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| GET    | `/api/leaves/my`       | Get own leave history. Filter by `?status=pending\|approved\|rejected\|cancelled`.                                                                                                                                       |
+| POST   | `/api/leaves`          | Submit a leave request. Requires a manager to be assigned. Body: `leaveType`, `startDate`, `endDate`, `reason` (optional). Returns `400` if the requested dates overlap with any existing `pending` or `approved` leave. |
+| DELETE | `/api/leaves/:leaveId` | Delete own leave. Only `pending` leaves can be deleted.                                                                                                                                                                  |
 
 ### Manager-only (team leaves)
 
@@ -82,8 +82,9 @@ All routes except `/auth/register` and `/auth/login` require a valid session coo
 | ------ | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | GET    | `/api/reimbursements/my`                        | Get own reimbursement history. Filter by `?status=`.                                                                                                                               |
 | POST   | `/api/reimbursements`                           | Submit a reimbursement. Requires a manager to be assigned. Body: `multipart/form-data` with `category`, `amount`, `description` (optional), `receipts` (files, optional, up to 5). |
-| PATCH  | `/api/reimbursements/:reimbursementId/receipts` | Upload more receipts to an existing pending reimbursement. Body: `multipart/form-data` with `receipts` files.                                                                      |
-| DELETE | `/api/reimbursements/:reimbursementId`          | Delete own reimbursement. Only `pending` ones can be deleted.                                                                                                                      |
+| PATCH  | `/api/reimbursements/:reimbursementId/receipts`                    | Upload more receipts to an existing pending reimbursement. Body: `multipart/form-data` with `receipts` files.                                                                      |
+| GET    | `/api/reimbursements/:reimbursementId/receipts/:receiptIndex`      | Download/view a single receipt by its 0-based index. Accessible by the owner, their assigned manager, or any admin. Redirects (`302`) to the Cloudinary file URL.                 |
+| DELETE | `/api/reimbursements/:reimbursementId`                             | Delete own reimbursement. Only `pending` ones can be deleted.                                                                                                                      |
 
 ### Manager-only (team reimbursements)
 
